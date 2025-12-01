@@ -1,0 +1,55 @@
+{% extends ‘core/base.html’ %}
+{% load static %}
+{% block title %}New Sale – Zeenat Store{% endblock %}
+
+{% block content %}
+<div class=”row”>
+  <div class=”col-md-8”>
+    <h4>Products</h4>
+    <table class=”table table-sm table-hover”>
+      <thead><tr><th>Product</th><th>Stock</th><th>Price</th><th>Qty</th><th></th></tr></thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.stock }}</td>
+          <td>${{ p.price }}</td>
+          <td>
+            <form method=”post” class=”d-inline”>
+              {% csrf_token %}
+              <input type=”hidden” name=”product_id” value=”{{ p.id }}”>
+              <input type=”number” name=”qty” value=”1” min=”1” class=”form-control form-control-sm w-25 d-inline”>
+              <button class=”btn btn-sm btn-success ms-2” name=”add_item” type=”submit”>+</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class=”col-md-4”>
+    <h4>Cart</h4>
+    {% if cart_items %}
+    <table class=”table table-sm”>
+      <thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for item in cart_items %}
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.qty }}</td>
+          <td>${{ item.line_total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class=”mb-1”>Sub-total: <strong>${{ sub_total }}</strong></p>
+    <p class=”mb-1”>Tax (15 %): <strong>${{ tax }}</strong></p>
+    <p class=”mb-3”>Grand Total: <strong>${{ grand_total }}</strong></p>
+    <a class=”btn btn-primary w-100” href=”{% url ‘core:checkout’ %}”>Checkout & Print Receipt</a>
+    {% else %}
+    <p class=”text-muted”>Cart is empty</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
