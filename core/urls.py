@@ -1,14 +1,18 @@
-from django.urls import path 
+from django.urls import path
 from . import views
 
-app_name = 'core'
-
 urlpatterns = [
-#staff routes will here
-# Add more paths as needed for other views
-path('staff/login/', views.staff_login, name='staff_login'),
-path('sale/new/', views.new_sale, name='new_sale'),
-path('sale/checkout/', views.sale_checkout, name='sale_checkout'),
-path('sale/receipt/<int:pk>/', views.sale_receipt, name='sale_receipt'),
-path('reports/view/', views.reports, name='reports'),
+    # Product CRUD
+    path('products/', views.product_list, name='product_list'),
+    path('products/create/', views.product_create, name='product_create'),
+    path('products/<int:pk>/edit/', views.product_edit, name='product_edit'),
+    path('products/<int:pk>/delete/', views.product_delete, name='product_delete'),
+
+    # Sales / receipts
+    path('sales/create/', views.sale_create, name='sale_create'),
+    path('sales/<int:pk>/receipt/', views.sale_receipt, name='sale_receipt'),
+
+    # Inventory and reconciliation
+    path('inventory/', views.inventory_overview, name='inventory_overview'),
+    path('reconciliation/', views.daily_reconciliation, name='daily_reconciliation'),
 ]

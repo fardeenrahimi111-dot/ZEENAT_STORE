@@ -1,132 +1,126 @@
-from decimal import Decimal
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
-from core.models import Product
-# Create your views here.
-def home(request):
-    products = Product.objects.all()
-    return render(request, 'core/home.html', {'products': products})
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db import transaction
+from django.utils import timezone
+from django.utils.timezone import localdate
 
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
+from .models import Product, Sale, SaleItem, InventoryMovement
 
-def staff_login(request):
+
+# ---------- PRODUCT CRUD ----------
+
+def product_list(request):
+    products = Product.objects.all().order_by('name')
+    return render(request, 'core/product_list.html', {'products': products})
+
+
+def product_create(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None and user.is_staff:
-            login(request, user)
-            return redirect('new_sale')  # Redirect to home after successful login
-        else:
-            return render(request, 'core/staff_login.html', {'error': 'Invalid credentials or not a staff member.'})
-    return render(request, 'core/staff_login.html')
+        Product.objects.create(
+            name=request.POST['name'],
+            sku=request.POST['sku'],
+            category=request.POST.get('category') or '',
+            purchase_price=request.POST['purchase_price'],
+            selling_price=request.POST['selling_price'],
+            stock=request.POST['stock'],
+        )
+        return redirect('product_list')
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
-from .models import Product, Sale, SaleItem
-from decimal import Decimal
-import datetime
+    return render(request, 'core/product_form.html')
 
 
-@login_required
-def new_sale(request):
-    """
-    Cashier screen: search products, add qty, see live total.
-    """
-    products = Product.objects.select_related('category').all()
-    cart = request.session.get('cart', {})   # session cart
-    cart_items = []
-    sub_total = Decimal('0.00')
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
 
-    for prod_id, qty in cart.items():
-        product = get_object_or_404(Product, id=prod_id)
-        line_total = product.price * qty
-        sub_total += line_total
-        cart_items.append({'product': product, 'qty': qty, 'line_total': line_total})
+    if request.method == 'POST':
+        product.name = request.POST['name']
+        product.sku = request.POST['sku']
+        product.category = request.POST.get('category') or ''
+        product.purchase_price = request.POST['purchase_price']
+        product.selling_price = request.POST['selling_price']
+        product.stock = request.POST['stock']
+        product.save()
+        return redirect('product_list')
 
-    tax = sub_total * Decimal('0.15')   # 15 % tax
-    grand_total = sub_total + tax
-
-    if request.method == 'POST' and 'add_item' in request.POST:
-        prod_id = request.POST['product_id']
-        qty = int(request.POST['qty'])
-        if qty <= 0:
-            qty = 1
-        cart[prod_id] = cart.get(prod_id, 0) + qty
-        request.session['cart'] = cart
-        return redirect('core:new_sale')
-
-    context = {
-        'products': products,
-        'cart_items': cart_items,
-        'sub_total': sub_total,
-        'tax': tax,
-        'grand_total': grand_total,
-    }
-    return render(request, 'core/new_sale.html', context)
+    return render(request, 'core/product_form.html', {'product': product})
 
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
-from .models import Sale
-import datetime
-import random
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        return redirect('product_list')
+
+    return render(request, 'core/product_confirm_delete.html', {'product': product})
 
 
+# ---------- CREATE SALE + RECEIPT + UPDATE STOCK ----------
+
+@transaction.atomic
+def sale_create(request):
+    products = Product.objects.all()
+
+    if request.method == 'POST':
+        sale = Sale.objects.create(
+            invoice_number=f"INV-{int(timezone.now().timestamp())}",
+            customer_name=request.POST.get('customer_name'),
+        )
+
+        product_ids = request.POST.getlist('product_id')
+        quantities = request.POST.getlist('quantity')
+
+        for pid, qty_str in zip(product_ids, quantities):
+            if not qty_str:
+                continue
+            quantity = int(qty_str)
+            if quantity <= 0:
+                continue
+
+            product = Product.objects.get(pk=pid)
+
+            SaleItem.objects.create(
+                sale=sale,
+                product=product,
+                quantity=quantity,
+                unit_price=product.selling_price,
+            )
+
+            product.stock -= quantity
+            product.save()
+
+            InventoryMovement.objects.create(
+                product=product,
+                movement_type=InventoryMovement.OUT,
+                quantity=quantity,
+                reason=f"Sale {sale.invoice_number}",
+            )
+
+        return redirect('sale_receipt', pk=sale.pk)
+
+    return render(request, 'core/sale_form.html', {'products': products})
 
 
-@login_required
 def sale_receipt(request, pk):
-    """
-    Display receipt for a completed sale.
-    """
     sale = get_object_or_404(Sale, pk=pk)
-    if not sale.reciept_number:
-        # Generate a unique receipt number
-        sale.reciept_number = f"REC{datetime.datetime.now().strftime('%Y%m%d')}{random.randint(1000, 9999)}"
-        sale.save()
-        
     return render(request, 'core/sale_receipt.html', {'sale': sale})
 
-@login_required
-def checkout(request):
-    """
-    Finalize the sale, save to DB, clear cart.
-    """
-    cart = request.session.get('cart', {})
-    if not cart:
-        return redirect('core:new_sale')
 
-    sub_total = Decimal('0.00')
-    for prod_id, qty in cart.items():
-        product = get_object_or_404(Product, id=prod_id)
-        line_total = product.price * qty
-        sub_total += line_total
-        item.append({'product': product, 'qty': qty, 'line_total': line_total})
+# ---------- INVENTORY + DAILY RECONCILIATION ----------
 
-    discount = Decimal('0.00')  # For simplicity, no discount logic here
-    grand_total = sub_total - discount
+def inventory_overview(request):
+    products = Product.objects.all().order_by('name')
+    return render(request, 'core/inventory_overview.html', {'products': products})
 
-    sale = Sale.objects.create(
-        cashier=request.user,
-        sub_total=sub_total,
-        discount=discount,
-        grand_total=grand_total
-    )
 
-    for item in item:
-        SaleItem.objects.create(
-            sale=sale,
-            product=item['product'],
-            qty=item['qty'],
-            unit_price=item['product'].price,
-            line_total=item['line_total']
-        )
-        # Update stock
-        item['product'].stock_quantity -= item['qty']
-        item['product'].save()
+def daily_reconciliation(request):
+    today = localdate()
+    sales_today = Sale.objects.filter(date__date=today)
+    total_sales_amount = sum(s.total_amount for s in sales_today)
+    invoices_count = sales_today.count()
 
-del request.session['cart']  # Clear cart
-    return redirect('core:sale_receipt', pk=sale.pk)
-
+    context = {
+        'today': today,
+        'sales_today': sales_today,
+        'total_sales_amount': total_sales_amount,
+        'invoices_count': invoices_count,
+    }
+    return render(request, 'core/daily_reconciliation.html', context)
