@@ -1,0 +1,31 @@
+{% extends "inventory/base.html" %}
+{% block title %}Sale Detail{% endblock %}
+{% block content %}
+<h2>Sale #{{ sale.id }}</h2>
+<p><strong>Date:</strong> {{ sale.created_at }}</p>
+<p><strong>Customer:</strong> {{ sale.customer_name|default:"N/A" }}</p>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Quantity</th>
+      <th>Price</th>
+      <th>Line Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.product.name }}</td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.price_at_sale }}</td>
+      <td>{{ item.line_total }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h4>Grand Total: {{ sale.grand_total }}</h4>
+<a href="{% url 'sale_invoice_pdf' sale.id %}" class="btn btn-secondary">Download Invoice PDF</a>
+{% endblock %}

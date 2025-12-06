@@ -1,126 +1,289 @@
+from decimal import Decimal
+
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db import transaction
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.db.models import Sum
 from django.utils import timezone
-from django.utils.timezone import localdate
 
-from .models import Product, Sale, SaleItem, InventoryMovement
+from xhtml2pdf import pisa
+import io
+import openpyxl
+
+from .models import Product, Category, Sale, SaleItem
+from .forms import ProductForm, SaleAddItemForm
 
 
-# ---------- PRODUCT CRUD ----------
+@login_required
+def dashboard(request):
+    total_products = Product.objects.count()
+    total_quantity = Product.objects.aggregate(total=Sum("quantity"))["total"] or 0
+    today = timezone.now().date()
+    today_sales_total = (
+        Sale.objects.filter(created_at__date=today).aggregate(total=Sum("grand_total"))["total"]
+        or Decimal("0")
+    )
+    context = {
+        "total_products": total_products,
+        "total_quantity": total_quantity,
+        "today_sales_total": today_sales_total,
+    }
+    return render(request, "core/dashboard.html", context)
 
+
+# ---------------- PRODUCT CRUD ----------------
+
+@login_required
 def product_list(request):
-    products = Product.objects.all().order_by('name')
-    return render(request, 'core/product_list.html', {'products': products})
+    products = Product.objects.select_related("category").all()
+    return render(request, "inventory/product_list.html", {"products": products})
 
 
+@login_required
 def product_create(request):
-    if request.method == 'POST':
-        Product.objects.create(
-            name=request.POST['name'],
-            sku=request.POST['sku'],
-            category=request.POST.get('category') or '',
-            purchase_price=request.POST['purchase_price'],
-            selling_price=request.POST['selling_price'],
-            stock=request.POST['stock'],
-        )
-        return redirect('product_list')
-
-    return render(request, 'core/product_form.html')
+    if request.method == "POST":
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("product_list")
+    else:
+        form = ProductForm()
+    return render(request, "inventory/product_form.html", {"form": form, "title": "Add Product"})
 
 
-def product_edit(request, pk):
+@login_required
+def product_update(request, pk):
     product = get_object_or_404(Product, pk=pk)
-
-    if request.method == 'POST':
-        product.name = request.POST['name']
-        product.sku = request.POST['sku']
-        product.category = request.POST.get('category') or ''
-        product.purchase_price = request.POST['purchase_price']
-        product.selling_price = request.POST['selling_price']
-        product.stock = request.POST['stock']
-        product.save()
-        return redirect('product_list')
-
-    return render(request, 'core/product_form.html', {'product': product})
+    if request.method == "POST":
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect("product_list")
+    else:
+        form = ProductForm(instance=product)
+    return render(request, "inventory/product_form.html", {"form": form, "title": "Edit Product"})
 
 
+@login_required
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         product.delete()
-        return redirect('product_list')
+        return redirect("product_list")
+    return render(request, "inventory/product_confirm_delete.html", {"product": product})
 
-    return render(request, 'core/product_confirm_delete.html', {'product': product})
 
+# ---------------- SALES ----------------
 
-# ---------- CREATE SALE + RECEIPT + UPDATE STOCK ----------
-
-@transaction.atomic
+@login_required
 def sale_create(request):
-    products = Product.objects.all()
+    """
+    Sale creation view using session as a temporary cart.
+    Supports barcode scanning or product dropdown selection.
+    """
+    cart = request.session.get("cart", {})
 
-    if request.method == 'POST':
-        sale = Sale.objects.create(
-            invoice_number=f"INV-{int(timezone.now().timestamp())}",
-            customer_name=request.POST.get('customer_name'),
-        )
+    if request.method == "POST":
+        # Add item to cart
+        if "add_item" in request.POST:
+            form = SaleAddItemForm(request.POST)
+            if form.is_valid():
+                product = None
+                barcode = form.cleaned_data.get("barcode")
+                if barcode:
+                    try:
+                        product = Product.objects.get(barcode=barcode)
+                    except Product.DoesNotExist:
+                        product = None
+                if not product:
+                    product = form.cleaned_data.get("product")
 
-        product_ids = request.POST.getlist('product_id')
-        quantities = request.POST.getlist('quantity')
+                quantity = form.cleaned_data["quantity"]
 
-        for pid, qty_str in zip(product_ids, quantities):
-            if not qty_str:
-                continue
-            quantity = int(qty_str)
-            if quantity <= 0:
-                continue
+                if product and quantity > 0:
+                    # Only add if enough stock
+                    if quantity <= product.quantity:
+                        product_id = str(product.id)
+                        if product_id in cart:
+                            cart[product_id]["quantity"] += quantity
+                        else:
+                            cart[product_id] = {
+                                "name": product.name,
+                                "price": float(product.final_price()),
+                                "quantity": quantity,
+                            }
+                        request.session["cart"] = cart
+                return redirect("sale_create")
 
-            product = Product.objects.get(pk=pid)
+        # Checkout and save sale
+        elif "checkout" in request.POST:
+            customer_name = request.POST.get("customer_name", "").strip()
+            if cart:
+                sale = Sale.objects.create(customer_name=customer_name)
+                total = Decimal("0")
+                for pid, item in cart.items():
+                    product = Product.objects.get(id=int(pid))
+                    quantity = int(item["quantity"])
+                    price = Decimal(str(item["price"]))
+                    line_total = price * quantity
 
-            SaleItem.objects.create(
-                sale=sale,
-                product=product,
-                quantity=quantity,
-                unit_price=product.selling_price,
-            )
+                    # reduce stock
+                    if product.quantity >= quantity:
+                        product.quantity -= quantity
+                        product.save()
 
-            product.stock -= quantity
-            product.save()
+                    SaleItem.objects.create(
+                        sale=sale,
+                        product=product,
+                        quantity=quantity,
+                        price_at_sale=price,
+                        line_total=line_total,
+                    )
+                    total += line_total
 
-            InventoryMovement.objects.create(
-                product=product,
-                movement_type=InventoryMovement.OUT,
-                quantity=quantity,
-                reason=f"Sale {sale.invoice_number}",
-            )
+                sale.total_amount = total
+                sale.discount_amount = Decimal("0")
+                sale.grand_total = total
+                sale.save()
 
-        return redirect('sale_receipt', pk=sale.pk)
+                # clear cart
+                request.session["cart"] = {}
+                return redirect("sale_detail", sale_id=sale.id)
 
-    return render(request, 'core/sale_form.html', {'products': products})
+    else:
+        form = SaleAddItemForm()
 
-
-def sale_receipt(request, pk):
-    sale = get_object_or_404(Sale, pk=pk)
-    return render(request, 'core/sale_receipt.html', {'sale': sale})
-
-
-# ---------- INVENTORY + DAILY RECONCILIATION ----------
-
-def inventory_overview(request):
-    products = Product.objects.all().order_by('name')
-    return render(request, 'core/inventory_overview.html', {'products': products})
-
-
-def daily_reconciliation(request):
-    today = localdate()
-    sales_today = Sale.objects.filter(date__date=today)
-    total_sales_amount = sum(s.total_amount for s in sales_today)
-    invoices_count = sales_today.count()
+    cart_total = sum(item["price"] * item["quantity"] for item in cart.values())
 
     context = {
-        'today': today,
-        'sales_today': sales_today,
-        'total_sales_amount': total_sales_amount,
-        'invoices_count': invoices_count,
+        "form": form,
+        "cart": cart,
+        "cart_total": cart_total,
     }
-    return render(request, 'core/daily_reconciliation.html', context)
+    return render(request, "inventory/sale_create.html", context)
+
+
+@login_required
+def sale_list(request):
+    sales = Sale.objects.order_by("-created_at")
+    return render(request, "inventory/sale_list.html", {"sales": sales})
+
+
+@login_required
+def sale_detail(request, sale_id):
+    sale = get_object_or_404(Sale, id=sale_id)
+    items = sale.items.select_related("product")
+    return render(request, "inventory/sale_detail.html", {"sale": sale, "items": items})
+
+
+@login_required
+def sale_invoice_pdf(request, sale_id):
+    sale = get_object_or_404(Sale, id=sale_id)
+    items = sale.items.select_related("product")
+
+    html = render_to_string("inventory/invoice_pdf.html", {"sale": sale, "items": items})
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="invoice_{sale.id}.pdf"'
+
+    pisa_status = pisa.CreatePDF(io.BytesIO(html.encode("UTF-8")), dest=response)
+    if pisa_status.err:
+        return HttpResponse("Error generating PDF")
+    return response
+
+
+# ---------------- REPORTS ----------------
+
+@login_required
+def inventory_report(request):
+    products = Product.objects.select_related("category").all()
+    return render(request, "inventory/inventory_report.html", {"products": products})
+
+
+@login_required
+def inventory_report_excel(request):
+    products = Product.objects.select_related("category").all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Inventory"
+
+    ws.append(["ID", "Name", "Category", "Size", "Color", "Price", "Discount", "Quantity"])
+
+    for p in products:
+        ws.append(
+            [
+                p.id,
+                p.name,
+                p.category.name,
+                p.size,
+                p.color,
+                float(p.price),
+                p.discount_percent,
+                p.quantity,
+            ]
+        )
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="inventory_report.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+def sales_report(request):
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    sales = Sale.objects.all()
+    if start_date:
+        sales = sales.filter(created_at__date__gte=start_date)
+    if end_date:
+        sales = sales.filter(created_at__date__lte=end_date)
+
+    total_sales = sales.aggregate(total=Sum("grand_total"))["total"] or Decimal("0")
+
+    context = {
+        "sales": sales,
+        "total_sales": total_sales,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+    return render(request, "inventory/sales_report.html", context)
+
+
+@login_required
+def sales_report_excel(request):
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    sales = Sale.objects.all()
+    if start_date:
+        sales = sales.filter(created_at__date__gte=start_date)
+    if end_date:
+        sales = sales.filter(created_at__date__lte=end_date)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Sales"
+
+    ws.append(["Sale ID", "Date", "Customer", "Grand Total"])
+
+    for s in sales:
+        ws.append(
+            [
+                s.id,
+                s.created_at.strftime("%Y-%m-%d %H:%M"),
+                s.customer_name or "",
+                float(s.grand_total),
+            ]
+        )
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="sales_report.xlsx"'
+    wb.save(response)
+    return response

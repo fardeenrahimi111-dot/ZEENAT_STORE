@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ sale.id }}</title>
+    <style>
+        body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #333; padding: 5px; text-align: left; }
+        .totals { text-align: right; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Zeenat Store - Invoice</h1>
+    <p><strong>Invoice ID:</strong> {{ sale.id }}</p>
+    <p><strong>Date:</strong> {{ sale.created_at }}</p>
+    <p><strong>Customer:</strong> {{ sale.customer_name|default:"N/A" }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price_at_sale }}</td>
+                <td>{{ item.line_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <p><strong>Total Amount:</strong> {{ sale.total_amount }}</p>
+        <p><strong>Discount:</strong> {{ sale.discount_amount }}</p>
+        <p><strong>Grand Total:</strong> {{ sale.grand_total }}</p>
+    </div>
+
+    <p>Thank you for shopping at Zeenat Store.</p>
+</body>
+</html>

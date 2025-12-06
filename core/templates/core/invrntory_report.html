@@ -1,0 +1,35 @@
+{% extends "inventory/base.html" %}
+{% block title %}Inventory Report{% endblock %}
+{% block content %}
+<h2>Inventory Report</h2>
+<a href="{% url 'inventory_report_excel' %}" class="btn btn-outline-success mb-3">Export to Excel</a>
+
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Category</th>
+      <th>Size</th>
+      <th>Color</th>
+      <th>Price</th>
+      <th>Discount %</th>
+      <th>Quantity</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in products %}
+    <tr>
+      <td>{{ product.id }}</td>
+      <td>{{ product.name }}</td>
+      <td>{{ product.category.name }}</td>
+      <td>{{ product.size }}</td>
+      <td>{{ product.color }}</td>
+      <td>{{ product.price }}</td>
+      <td>{{ product.discount_percent }}</td>
+      <td>{{ product.quantity }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

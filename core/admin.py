@@ -1,5 +1,20 @@
 from django.contrib import admin
-from .models import Product, Sale, SaleItem, InventoryMovement
+from core.models import Category, Product, Sale, SaleItem
+
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+    search_fields = ("name",)
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "category", "size", "color", "price", "quantity")
+    search_fields = ("name", "barcode", "color")
+    list_filter = ("category", "size")
+    list_editable = ("price", "quantity")
 
 
 class SaleItemInline(admin.TabularInline):
@@ -7,19 +22,7 @@ class SaleItemInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('sku', 'name', 'category', 'stock', 'selling_price')
-    search_fields = ('sku', 'name', 'category')
-
-
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('invoice_number', 'date', 'customer_name', 'total_amount')
+    list_display = ("id", "customer_name", "created_at", "grand_total")
     inlines = [SaleItemInline]
-
-
-@admin.register(InventoryMovement)
-class InventoryMovementAdmin(admin.ModelAdmin):
-    list_display = ('product', 'movement_type', 'quantity', 'reason', 'created_at')
-    list_filter = ('movement_type', 'created_at')
