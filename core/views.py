@@ -37,7 +37,7 @@ def dashboard(request):
 @login_required
 def product_list(request):
     products = Product.objects.select_related("category").all()
-    return render(request, "inventory/product_list.html", {"products": products})
+    return render(request, "core/product_list.html", {"products": products})
 
 
 @login_required
@@ -46,10 +46,10 @@ def product_create(request):
         form = ProductForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("product_list")
+            return redirect("core:product_list")
     else:
         form = ProductForm()
-    return render(request, "inventory/product_form.html", {"form": form, "title": "Add Product"})
+        return render(request, "core/product_form.html", {"form": form, "title": "Add Product"})
 
 
 @login_required
@@ -62,7 +62,7 @@ def product_update(request, pk):
             return redirect("product_list")
     else:
         form = ProductForm(instance=product)
-    return render(request, "inventory/product_form.html", {"form": form, "title": "Edit Product"})
+    return render(request, "core/product_form.html", {"form": form, "title": "Edit Product"})
 
 
 @login_required
@@ -71,7 +71,8 @@ def product_delete(request, pk):
     if request.method == "POST":
         product.delete()
         return redirect("product_list")
-    return render(request, "inventory/product_confirm_delete.html", {"product": product})
+    
+    return render(request, "core/product_confirm_delete.html", {"product": product})
 
 
 # ---------------- SALES ----------------
@@ -161,20 +162,20 @@ def sale_create(request):
         "cart": cart,
         "cart_total": cart_total,
     }
-    return render(request, "inventory/sale_create.html", context)
+    return render(request, "core/sale_create.html", context)
 
 
 @login_required
 def sale_list(request):
     sales = Sale.objects.order_by("-created_at")
-    return render(request, "inventory/sale_list.html", {"sales": sales})
+    return render(request, "core/sale_list.html", {"sales": sales})
 
 
 @login_required
 def sale_detail(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
     items = sale.items.select_related("product")
-    return render(request, "inventory/sale_detail.html", {"sale": sale, "items": items})
+    return render(request, "core/sale_detail.html", {"sale": sale, "items": items})
 
 
 @login_required
@@ -182,7 +183,7 @@ def sale_invoice_pdf(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
     items = sale.items.select_related("product")
 
-    html = render_to_string("inventory/invoice_pdf.html", {"sale": sale, "items": items})
+    html = render_to_string("core/invoice_pdf.html", {"sale": sale, "items": items})
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="invoice_{sale.id}.pdf"'
 
@@ -197,7 +198,7 @@ def sale_invoice_pdf(request, sale_id):
 @login_required
 def inventory_report(request):
     products = Product.objects.select_related("category").all()
-    return render(request, "inventory/inventory_report.html", {"products": products})
+    return render(request, "core/inventory_report.html", {"products": products})
 
 
 @login_required
@@ -251,7 +252,7 @@ def sales_report(request):
         "start_date": start_date,
         "end_date": end_date,
     }
-    return render(request, "inventory/sales_report.html", context)
+    return render(request, "core/sales_report.html", context)
 
 
 @login_required

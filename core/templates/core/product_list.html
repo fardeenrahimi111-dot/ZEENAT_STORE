@@ -1,9 +1,9 @@
-{% extends "inventory/base.html" %}
+{% extends "core/base.html" %}
 {% block title %}Products{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between mb-3">
   <h2>Products</h2>
-  <a href="{% url 'product_create' %}" class="btn btn-primary">Add Product</a>
+  <a href="{% url 'core:product_create' %}" class="btn btn-primary">Add Product</a>
 </div>
 
 <table class="table table-bordered table-striped">

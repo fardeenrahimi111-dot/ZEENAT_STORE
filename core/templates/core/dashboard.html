@@ -1,31 +1,203 @@
-{% extends "inventory/base.html" %}
+{% extends 'core/base.html' %}
+{% load static %}
+
 {% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h2>Dashboard</h2>
-<div class="row">
-  <div class="col-md-4">
-    <div class="card text-bg-primary mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Total Products</h5>
-        <p class="card-text fs-3">{{ total_products }}</p>
-      </div>
+<!-- Page Header with Date -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1"><i class="bi bi-speedometer2 text-primary"></i> Store Dashboard</h1>
+        <p class="text-muted mb-0">Overview of your clothing store performance</p>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card text-bg-success mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Total Quantity in Stock</h5>
-        <p class="card-text fs-3">{{ total_quantity }}</p>
-      </div>
+    <div class="text-end">
+        <div class="text-muted small">Today's Date</div>
+        <div class="fw-bold">{{ current_date|date:"F d, Y"|default:"September 09, 2025" }}</div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card text-bg-warning mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Today Sales Total</h5>
-        <p class="card-text fs-3">{{ today_sales_total }}</p>
-      </div>
-    </div>
-  </div>
 </div>
+
+<!-- Stats Cards - Row 1 -->
+<div class="row g-4 mb-4">
+    <!-- Total Products -->
+    <div class="col-xl-3 col-lg-6">
+        <div class="card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="text-muted text-uppercase small fw-bold">Total Products</div>
+                        <div class="h2 mt-2 mb-0 fw-bold">{{ total_products|default:"0" }}</div>
+                        <div class="small text-muted">In inventory</div>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-box-seam fs-2 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Sales -->
+    <div class="col-xl-3 col-lg-6">
+        <div class="card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="text-muted text-uppercase small fw-bold">Today's Sales</div>
+                        <div class="h2 mt-2 mb-0 fw-bold text-success">₹{{ today_sales|default:"0" }}</div>
+                        <div class="small text-muted">Revenue today</div>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-currency-rupee fs-2 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Items -->
+    <div class="col-xl-3 col-lg-6">
+        <div class="card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="text-muted text-uppercase small fw-bold">Low Stock</div>
+                        <div class="h2 mt-2 mb-0 fw-bold text-warning">{{ low_stock_count|default:"0" }}</div>
+                        <div class="small text-muted">Need restocking</div>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="col-xl-3 col-lg-6">
+        <div class="card border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="text-muted text-uppercase small fw-bold">Total Customers</div>
+                        <div class="h2 mt-2 mb-0 fw-bold text-info">{{ total_customers|default:"0" }}</div>
+                        <div class="small text-muted">Registered customers</div>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="bi bi-people fs-2 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge text-warning"></i> Quick Actions</h5>
+                <small class="text-muted">Frequently used actions</small>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'core:sale_create' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cart-plus me-2"></i> New Sale
+                    </a>
+                    <a href="{% url 'core:product_create' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i> Add Product
+                    </a>
+                    <a href="{% url 'core:product_list' %}" class="btn btn-info btn-lg">
+                        <i class="bi bi-search me-2"></i> Browse Products
+                    </a>
+                    <a href="{% url 'core:inventory_report' %}" class="btn btn-warning btn-lg">
+                        <i class="bi bi-clipboard-data me-2"></i> Stock Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history text-primary"></i> Recent Sales</h5>
+                <a href="{% url 'core:sale_list' %}" class="btn btn-sm btn-outline-primary">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_sales %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Invoice #</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Date & Time</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in recent_sales %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ sale.invoice_number }}</td>
+                                <td>
+                                    <div>{{ sale.customer.name|default:"Walk-in Customer" }}</div>
+                                    <small class="text-muted">{{ sale.customer.phone|default:"No phone" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill">{{ sale.items.count }} items</span>
+                                </td>
+                                <td class="fw-bold text-success">₹{{ sale.total_amount }}</td>
+                                <td>
+                                    <div>{{ sale.sale_date|date:"d M, Y" }}</div>
+                                    <small class="text-muted">{{ sale.sale_date|time:"H:i" }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'core:sale_detail' sale.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-cart-x display-1 text-muted opacity-50"></i>
+                    </div>
+                    <h4 class="text-muted">No sales yet</h4>
+                    <p class="text-muted mb-4">Start selling to see your sales history here</p>
+                    <a href="{% url 'core:sale_create' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cart-plus me-2"></i> Create First Sale
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Spacing -->
+<div class="mb-5"></div>
 {% endblock %}

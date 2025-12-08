@@ -1,12 +1,239 @@
+/* ============================================
+   ZEENAT CLOTHING STORE - CUSTOM STYLES
+   ============================================ */
+
+/* 1. GLOBAL STYLES */
 body {
-  background-color: #f8f9fa;
+    background-color: #f8fafc;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #333;
+    min-height: 100vh;
+    padding-bottom: 20px;
+}
+
+/* 2. NAVBAR - Blue Theme */
+.navbar {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-brand {
-  font-weight: bold;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
 }
 
-.table th,
-.table td {
-  vertical-align: middle;
+.nav-link {
+    border-radius: 6px;
+    margin: 0 3px;
+    padding: 8px 12px !important;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 3. CONTAINER SPACING */
+.container {
+    padding-top: 20px;
+}
+
+/* 4. CARDS - Modern Look */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 2px solid #eef2f7;
+    font-weight: 600;
+    padding: 15px 20px;
+}
+
+/* 5. BUTTONS - Rounded with Gradient */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #3a56d4 0%, #2d0a82 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f8961e 0%, #f3722c 100%);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #38b000 0%, #2d7d46 100%);
+}
+
+/* 6. TABLES - Professional */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table thead {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    color: white;
+}
+
+.table thead th {
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+}
+
+.table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    border-color: #eef2f7;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(67, 97, 238, 0.03);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.08);
+}
+
+/* 7. FORMS - Clean Inputs */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d9e6;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+/* 8. BADGES - Rounded Pills */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%) !important;
+}
+
+/* 9. ALERTS */
+.alert {
+    border-radius: 10px;
+    border: none;
+    padding: 15px 20px;
+}
+
+/* 10. UTILITY CLASSES */
+.text-primary {
+    color: #4361ee !important;
+}
+
+.border-primary {
+    border-color: #4361ee !important;
+}
+
+/* 11. STATS CARDS BORDERS */
+.border-start {
+    border-left-width: 4px !important;
+}
+
+/* 12. PAGE HEADERS */
+h1, h2, h3, h4, h5, h6 {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+/* 13. FOOTER (if you add later) */
+.footer {
+    background-color: #2d3748;
+    color: white;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+/* 14. RESPONSIVE - Mobile First */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+        border-radius: 10px;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .navbar-nav {
+        padding: 10px 0;
+    }
+}
+
+/* 15. CUSTOM SCROLLBAR */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #3a56d4 0%, #2d0a82 100%);
 }
