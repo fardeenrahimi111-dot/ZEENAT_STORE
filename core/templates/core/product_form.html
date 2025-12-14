@@ -1,24 +1,242 @@
 {% extends "core/base.html" %}
 {% block title %}{{ title }}{% endblock %}
+
 {% block content %}
-<h2>{{ title }}</h2>
-<form method="post">
-  {% csrf_token %}
-  <div class="row">
-    <div class="col-md-6">
-      {{ form.name.label_tag }} {{ form.name }}
-      {{ form.category.label_tag }} {{ form.category }}
-      {{ form.size.label_tag }} {{ form.size }}
-      {{ form.color.label_tag }} {{ form.color }}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box me-2"></i> {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            <p class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i> {{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <!-- Product Name -->
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                        Product Name <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.name.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Category -->
+                                <div class="mb-3">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                                        Category
+                                    </label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.category.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- New Category -->
+                                <div class="mb-3">
+                                    <label for="{{ form.new_category.id_for_label }}" class="form-label fw-bold">
+                                        Or Add New Category
+                                    </label>
+                                    {{ form.new_category }}
+                                    <div class="form-text">Leave empty if selecting existing category</div>
+                                    {% if form.new_category.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.new_category.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Size -->
+                                <div class="mb-3">
+                                    <label for="{{ form.size.id_for_label }}" class="form-label fw-bold">
+                                        Size
+                                    </label>
+                                    {{ form.size }}
+                                    {% if form.size.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.size.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Color -->
+                                <div class="mb-3">
+                                    <label for="{{ form.color.id_for_label }}" class="form-label fw-bold">
+                                        Color
+                                    </label>
+                                    {{ form.color }}
+                                    {% if form.color.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.color.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <!-- Price -->
+                                <div class="mb-3">
+                                    <label for="{{ form.price.id_for_label }}" class="form-label fw-bold">
+                                        Price (₹) <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.price }}
+                                    <div class="form-text">Must be greater than 0</div>
+                                    {% if form.price.errors %}
+                                    <div class="alert alert-danger mt-2 py-2">
+                                        {% for error in form.price.errors %}
+                                        <div class="small">
+                                            <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Quantity -->
+                                <div class="mb-3">
+                                    <label for="{{ form.quantity.id_for_label }}" class="form-label fw-bold">
+                                        Quantity <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.quantity }}
+                                    <div class="form-text">Cannot be negative</div>
+                                    {% if form.quantity.errors %}
+                                    <div class="alert alert-danger mt-2 py-2">
+                                        {% for error in form.quantity.errors %}
+                                        <div class="small">
+                                            <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Barcode -->
+                                <div class="mb-3">
+                                    <label for="{{ form.barcode.id_for_label }}" class="form-label fw-bold">
+                                        Barcode
+                                    </label>
+                                    {{ form.barcode }}
+                                    {% if form.barcode.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.barcode.errors %}
+                                        <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Discount -->
+                                <div class="mb-3">
+                                    <label for="{{ form.discount_percent.id_for_label }}" class="form-label fw-bold">
+                                        Discount (%)
+                                    </label>
+                                    {{ form.discount_percent }}
+                                    <div class="form-text">0-100% only</div>
+                                    {% if form.discount_percent.errors %}
+                                    <div class="alert alert-danger mt-2 py-2">
+                                        {% for error in form.discount_percent.errors %}
+                                        <div class="small">
+                                            <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i> Save Product
+                            </button>
+                            <a href="{% url 'core:product_list' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-      {{ form.price.label_tag }} {{ form.price }}
-      {{ form.quantity.label_tag }} {{ form.quantity }}
-      {{ form.barcode.label_tag }} {{ form.barcode }}
-      {{ form.discount_percent.label_tag }} {{ form.discount_percent }}
-    </div>
-  </div>
-  <button type="submit" class="btn btn-success mt-3">Save</button>
-  <a href="{% url 'core:product_list' %}" class="btn btn-secondary mt-3">Cancel</a>
-</form>
+</div>
+
+<!-- JavaScript Validation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const priceInput = document.getElementById('{{ form.price.id_for_label }}');
+    const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+    const discountInput = document.getElementById('{{ form.discount_percent.id_for_label }}');
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        
+        // Validate Price
+        if (priceInput) {
+            const price = parseFloat(priceInput.value);
+            if (isNaN(price) || price <= 0) {
+                alert('Price must be a number greater than 0');
+                priceInput.focus();
+                isValid = false;
+            }
+        }
+        
+        // Validate Quantity
+        if (quantityInput) {
+            const quantity = parseInt(quantityInput.value);
+            if (isNaN(quantity) || quantity < 0) {
+                alert('Quantity cannot be negative');
+                quantityInput.focus();
+                isValid = false;
+            }
+        }
+        
+        // Validate Discount
+        if (discountInput) {
+            const discount = parseInt(discountInput.value);
+            if (!isNaN(discount) && (discount < 0 || discount > 100)) {
+                alert('Discount must be between 0 and 100');
+                discountInput.focus();
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -4,6 +4,7 @@
 
 /* 1. GLOBAL STYLES */
 body {
+    
     background-color: #f8fafc;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: #333;
@@ -72,7 +73,7 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    background: linear-gradient(135deg, #4361ee 0%, #750934 100%);
 }
 
 .btn-primary:hover {
@@ -217,6 +218,7 @@ h1, h2, h3, h4, h5, h6 {
     
     .navbar-nav {
         padding: 10px 0;
+
     }
 }
 
@@ -236,4 +238,41 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #3a56d4 0%, #2d0a82 100%);
+}
+
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Button loading state */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid white;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
 }

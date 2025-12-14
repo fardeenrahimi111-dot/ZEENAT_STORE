@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Access Denied - Zeenat Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center">
+            <!-- Icon -->
+            <div class="mb-4">
+                <i class="bi bi-shield-slash display-1 text-danger"></i>
+            </div>
+            
+            <!-- Message -->
+            <h1 class="display-5 fw-bold text-danger mb-3">403 - Access Denied</h1>
+            <h2 class="h4 mb-4">You don't have permission to access this page</h2>
+            
+            <!-- Role Information -->
+            <div class="alert alert-warning text-start mb-5">
+                <div class="d-flex">
+                    <i class="bi bi-person-badge fs-4 me-3"></i>
+                    <div>
+                        <h5 class="alert-heading">Permission Check Failed</h5>
+                        <p class="mb-2">
+                            <strong>Your Role:</strong> 
+                            <span class="badge bg-secondary">{{ user_role|default:"User" }}</span>
+                        </p>
+                        <p class="mb-2">
+                            <strong>Username:</strong> {{ current_user.username|default:"Guest" }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Required Role(s):</strong> 
+                            {% for role in required_roles %}
+                            <span class="badge bg-primary me-1">{{ role }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-house-door me-2"></i> Return to Dashboard
+                </a>
+                <a href="{% url 'core:sale_create' %}" class="btn btn-success">
+                    <i class="bi bi-cart-plus me-2"></i> Create Sale
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Login as Different User
+                </a>
+            </div>
+            
+            <!-- Role Matrix Table -->
+            <div class="card mb-5">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-table me-2"></i> Role Permissions Matrix</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Feature</th>
+                                    <th class="text-center">Admin</th>
+                                    <th class="text-center">Manager</th>
+                                    <th class="text-center">Cashier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>View Dashboard</td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>Add/Edit Products</td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-x-circle text-danger"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>Delete Products</td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-x-circle text-danger"></i></td>
+                                    <td class="text-center"><i class="bi bi-x-circle text-danger"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>Create Sales</td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                </tr>
+                                <tr>
+                                    <td>View Reports</td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-check-circle text-success"></i></td>
+                                    <td class="text-center"><i class="bi bi-x-circle text-danger"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Admin -->
+            <div class="mt-4 pt-4 border-top">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Need different permissions? Contact system administrator.
+                    <br>
+                    <a href="mailto:admin@zeenatstore.com" class="text-decoration-none">
+                        <i class="bi bi-envelope me-1"></i> admin@zeenatstore.com
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

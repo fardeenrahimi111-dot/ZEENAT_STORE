@@ -20,11 +20,11 @@ class Product(models.Model):
         ("L", "Large"),
         ("XL", "Extra Large"),
         ("XXL", "Double Extra Large"),
-    ]
+          ]
 
     name = models.CharField(max_length=200)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1)
-    size = models.CharField(max_length=10, choices=SIZE_CHOICES)
+    size = models.CharField(max_length=50)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     color = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=0)
@@ -57,12 +57,15 @@ class Sale(models.Model):
         return f"Sale #{self.id}"
 
 
-class SaleItem(models.Model):
-    sale = models.ForeignKey(Sale, related_name="items", on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField()
-    price_at_sale = models.DecimalField(max_digits=10, decimal_places=2)
-    line_total = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
+class SaleItem(models.Model):
+    sale = models.ForeignKey('Sale', on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('Product', on_delete=models.PROTECT)
+    quantity = models.IntegerField(default=1)
+    price_at_sale = models.DecimalField(max_digits=10, decimal_places=2)
+    line_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    def save(self, *args, **kwargs):
+        # Auto-calculate line total
+        self.line_total = self.price_at_sale * self.quantity
+        super().save(*args, **kwargs)

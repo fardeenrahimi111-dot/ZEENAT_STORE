@@ -2,8 +2,7 @@
 {% block title %}Inventory Report{% endblock %}
 {% block content %}
 <h2>Inventory Report</h2>
-<a href="{% url 'inventory_report_excel' %}" class="btn btn-outline-success mb-3">Export to Excel</a>
-
+<a href="{% url 'core:inventory_report_excel' %}" class="btn btn-outline-success mb-3">
 <table class="table table-bordered table-striped">
   <thead>
     <tr>

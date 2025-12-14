@@ -1,7 +1,9 @@
+{% load role_tags %}
+{% load static %}
+{% load math_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +11,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- After Bootstrap CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow">
@@ -27,60 +31,78 @@
         <div class="collapse navbar-collapse" id="navbarMain">
             <!-- Left side menu -->
             <ul class="navbar-nav me-auto">
-                <!-- Products -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:product_list' %}">
-                        <i class="bi bi-box me-1"></i> Products
-                    </a>
-                </li>
-                
-                <!-- New Sale -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:sale_create' %}">
-                        <i class="bi bi-cart-plus me-1"></i> New Sale
-                    </a>
-                </li>
-                
-                <!-- Sales History -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:sale_list' %}">
-                        <i class="bi bi-receipt me-1"></i> Sales
-                    </a>
-                </li>
-                
-                <!-- Reports Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-graph-up me-1"></i> Reports
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'core:inventory_report' %}">
-                                <i class="bi bi-clipboard-data me-2"></i> Inventory Report
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'core:sales_report' %}">
-                                <i class="bi bi-currency-rupee me-2"></i> Sales Report
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Products: Admin & Manager only -->
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.groups.all.0.name == "Manager" or user.groups.all.0.name == "admin" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:product_list' %}">
+                            <i class="bi bi-box me-1"></i> Products
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- New Sale: Admin, Manager, Cashier -->
+                    {% if user.is_superuser or user.groups.all.0.name in "Manager,admin,Cashier" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:sale_create' %}">
+                            <i class="bi bi-cart-plus me-1"></i> New Sale
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Sales History: Admin, Manager, Cashier -->
+                    {% if user.is_superuser or user.groups.all.0.name in "Manager,admin,Cashier" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:sale_list' %}">
+                            <i class="bi bi-receipt me-1"></i> Sales
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Reports: Admin & Manager only -->
+                    {% if user.is_superuser or user.groups.all.0.name == "Manager" or user.groups.all.0.name == "admin" %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-graph-up me-1"></i> Reports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'core:inventory_report' %}">
+                                    <i class="bi bi-clipboard-data me-2"></i> Inventory Report
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'core:sales_report' %}">
+                                    <i class="bi bi-currency-rupee me-2"></i> Sales Report
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                {% endif %}
             </ul>
             
             <!-- Right side (user) -->
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-center">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <span class="navbar-text me-3">
+                    <span class="navbar-text me-2">
                         <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                        <small class="text-light ms-1">
+                            ({% if user.is_superuser %}Admin{% else %}{{ user.groups.all.0.name|default:"User" }}{% endif %})
+                        </small>
                     </span>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">
-                        <i class="bi bi-box-arrow-right me-1"></i> Logout
-                    </a>
-                </li>
+                {% if user.is_authenticated %}
+<li class="nav-item">
+    <form method="post" action="{% url 'logout' %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link nav-link p-0 m-0 border-0 bg-transparent">
+            <i class="bi bi-box-arrow-right me-1"></i> Logout
+        </button>
+    </form>
+</li>
+{% endif %}
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'login' %}">
@@ -94,14 +116,22 @@
 </nav>
 
 <div class="container mb-4">
+    {% if messages %}
+    <div class="mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     {% block content %}{% endblock %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'inventory/js/sale.js' %}"></script>
-
-
 
 <footer class="footer mt-5 py-4 bg-dark text-white">
     <div class="container text-center">

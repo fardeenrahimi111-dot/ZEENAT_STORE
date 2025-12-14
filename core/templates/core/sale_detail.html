@@ -27,5 +27,5 @@
 </table>
 
 <h4>Grand Total: {{ sale.grand_total }}</h4>
-<a href="{% url 'sale_invoice_pdf' sale.id %}" class="btn btn-secondary">Download Invoice PDF</a>
+<a href="{% url 'core:sale_invoice_pdf' sale.id %}" class="btn btn-secondary">Download Invoice PDF</a>
 {% endblock %}

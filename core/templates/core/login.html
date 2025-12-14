@@ -1,14 +1,191 @@
 {% extends "core/base.html" %}
-{% block title %}Login{% endblock %}
+{% load static %}
+
+{% block title %}Login - Zeenat Store{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <h3 class="mb-3 text-center">Admin Login</h3>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-  </div>
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <!-- Login Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-0">
+                    <!-- Header Section -->
+                    <div class="bg-primary text-white p-4 rounded-top">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-shop-window display-4"></i>
+                        </div>
+                        <h1 class="h3 text-center mb-0">Zeenat Clothing Store</h1>
+                        <p class="text-center opacity-75 mb-0">Inventory Management System</p>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <div class="p-4 p-md-5">
+                        <h2 class="h4 mb-4 text-center">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                        </h2>
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Login Failed!</strong> Please check your username and password.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                        
+                        {% if next %}
+                            {% if user.is_authenticated %}
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-shield-exclamation me-2"></i>
+                                Your account doesn't have access to this page.
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info" role="alert">
+                                <i class="bi bi-shield-lock me-2"></i>
+                                Please login to access this page.
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            
+                            <!-- Username Field -->
+                            <div class="mb-4">
+                                <label for="id_username" class="form-label">
+                                    <i class="bi bi-person-fill me-2"></i> Username
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person text-primary"></i>
+                                    </span>
+                                    <input type="text" 
+                                           name="username" 
+                                           id="id_username" 
+                                           class="form-control form-control-lg"
+                                           placeholder="Enter your username"
+                                           required 
+                                           autofocus
+                                           autocomplete="username">
+                                </div>
+                            </div>
+                            
+                            <!-- Password Field -->
+                            <div class="mb-4">
+                                <label for="id_password" class="form-label">
+                                    <i class="bi bi-key-fill me-2"></i> Password
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-lock text-primary"></i>
+                                    </span>
+                                    <input type="password" 
+                                           name="password" 
+                                           id="id_password" 
+                                           class="form-control form-control-lg"
+                                           placeholder="Enter your password"
+                                           required
+                                           autocomplete="current-password">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden Next Field -->
+                            <input type="hidden" name="next" value="{{ next|default:'/' }}">
+                            
+                            <!-- Remember Me Checkbox -->
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe" name="remember">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me on this device
+                                </label>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i> Login to Dashboard
+                                </button>
+                            </div>
+                            
+                            <!-- Demo Credentials (for defense presentation) -->
+                            <div class="card border-info mb-4">
+                                <div class="card-header bg-info bg-opacity-10 border-info">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-info-circle me-2"></i> Demo Credentials (For Defense)
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row small">
+                                        <div class="col-md-6 mb-2">
+                                            <strong class="text-danger">Admin:</strong><br>
+                                            <code>admin</code> / <code>admin123</code>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong class="text-primary">Manager:</strong><br>
+                                            <code>manager</code> / <code>manager123</code>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong class="text-success">Cashier:</strong><br>
+                                            <code>cashier</code> / <code>cashier123</code>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong class="text-warning">Staff:</strong><br>
+                                            <code>staff</code> / <code>staff123</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Security Notice -->
+                        <div class="alert alert-light border text-center">
+                            <i class="bi bi-shield-check text-success me-2"></i>
+                            <small class="text-muted">
+                                Secure SSL Connection • Encrypted Passwords • Activity Logged
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="bi bi-c-circle me-1"></i> 2025 Zeenat Clothing Store
+                    <br>
+                    <span class="text-muted">Inventory Management System v1.0</span>
+                    <br>
+                    <small>For authorized personnel only. Unauthorized access prohibited.</small>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Password Toggle Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? 
+                '<i class="bi bi-eye"></i>' : 
+                '<i class="bi bi-eye-slash"></i>';
+        });
+    }
+    
+    // Auto-focus username field
+    const usernameInput = document.getElementById('id_username');
+    if (usernameInput) {
+        usernameInput.focus();
+    }
+});
+</script>
 {% endblock %}

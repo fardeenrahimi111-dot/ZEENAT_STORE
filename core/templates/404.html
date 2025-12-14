@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Page Not Found - Zeenat Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center">
+            <div class="mb-4">
+                <i class="bi bi-exclamation-octagon display-1 text-warning"></i>
+            </div>
+            
+            <h1 class="display-4 fw-bold text-muted mb-3">404</h1>
+            <h2 class="h3 mb-4">Oops! Page Not Found</h2>
+            
+            <p class="lead text-muted mb-5">
+                The page you are looking for might have been removed or doesn't exist.
+            </p>
+            
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-primary btn-lg px-4">
+                    <i class="bi bi-house-door me-2"></i> Go to Dashboard
+                </a>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Go Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
